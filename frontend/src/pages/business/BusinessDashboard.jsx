@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { adminAPI, appointmentAPI, businessAPI, serviceAPI } from '../../api';
-import { Link } from 'react-router-dom';
+import { appointmentAPI, businessAPI, serviceAPI } from '../../api';
+import { Link, useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import StarRating from '../../components/ui/StarRating';
 import {
@@ -36,7 +36,7 @@ export default function BusinessDashboard() {
     setLoading(true);
     try {
       const [analyticsRes, bizRes, apptsRes] = await Promise.all([
-        adminAPI.getBusinessAnalytics(),
+        businessAPI.getAnalytics(),
         businessAPI.getMy(),
         appointmentAPI.getAll({ limit: 20 }),
       ]);
@@ -103,6 +103,11 @@ export default function BusinessDashboard() {
     { id: 'services', label: 'Services', icon: Package },
   ];
 
+  const QUICK_LINKS = [
+    { label: 'View Reviews', icon: Star, to: '/dashboard/business/reviews' },
+    { label: 'Edit Profile', icon: Edit3, to: '/dashboard/business/profile' },
+  ];
+
   if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="xl" /></div>;
 
   if (!business) return (
@@ -154,9 +159,16 @@ export default function BusinessDashboard() {
                 </div>
               </div>
             </div>
-            <Link to={`/businesses/${business._id}`} className="hidden sm:flex btn-secondary text-sm">
-              View Profile
-            </Link>
+            <div className="hidden sm:flex items-center gap-2">
+              {QUICK_LINKS.map(({ label, icon: Icon, to }) => (
+                <Link key={to} to={to} className="btn-secondary text-sm flex items-center gap-1.5">
+                  <Icon className="w-4 h-4" /> {label}
+                </Link>
+              ))}
+              <Link to={`/businesses/${business._id}`} className="btn-secondary text-sm">
+                View Profile
+              </Link>
+            </div>
           </div>
 
           {/* Stats row */}

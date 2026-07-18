@@ -71,17 +71,23 @@ export default function CustomerDashboard() {
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-4">
-            {user?.avatar ? (
-              <img src={user.avatar} alt={user.name} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/40" />
-            ) : (
-              <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-2xl font-bold text-white">
-                {user?.name?.[0]?.toUpperCase()}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.name} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/40" />
+              ) : (
+                <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-2xl font-bold text-white">
+                  {user?.name?.[0]?.toUpperCase()}
+                </div>
+              )}
+              <div>
+                <h1 className="text-2xl font-bold">Welcome back, {user?.name?.split(' ')[0]}!</h1>
+                <p className="text-indigo-200 text-sm">Manage your appointments and favorites</p>
               </div>
-            )}
-            <div>
-              <h1 className="text-2xl font-bold">Welcome back, {user?.name?.split(' ')[0]}!</h1>
-              <p className="text-indigo-200 text-sm">Manage your appointments and favorites</p>
+            </div>
+            <div className="hidden sm:flex items-center gap-2">
+              <Link to="/businesses" className="btn-secondary text-sm">Browse Businesses</Link>
+              <Link to="/dashboard/customer/profile" className="btn-secondary text-sm">My Profile</Link>
             </div>
           </div>
         </div>

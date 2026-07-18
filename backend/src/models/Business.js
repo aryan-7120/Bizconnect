@@ -38,7 +38,7 @@ const businessSchema = new mongoose.Schema(
       linkedin: String,
     },
     isVerified: { type: Boolean, default: false },
-    isApproved: { type: Boolean, default: false },
+    isApproved: { type: Boolean, default: true }, // Businesses auto-publish on creation (no admin approval required)
     isSuspended: { type: Boolean, default: false },
     avgRating: { type: Number, default: 0, min: 0, max: 5 },
     totalReviews: { type: Number, default: 0 },

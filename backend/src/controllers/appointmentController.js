@@ -2,46 +2,74 @@ const Appointment = require('../models/Appointment');
 const Business = require('../models/Business');
 const Service = require('../models/Service');
 const Notification = require('../models/Notification');
-const { sendEmail } = require('../config/nodemailer');
+const {
+  sendAppointmentConfirmationEmail,
+  sendAppointmentStatusEmail,
+  sendNewAppointmentOwnerEmail,
+} = require('../services/emailService');
+const User = require('../models/User');
 
+/**
+ * Format a Date object to a human-readable string: "Monday, January 15, 2025"
+ * Using native Intl.DateTimeFormat to avoid adding date-fns as a backend dependency.
+ */
+const formatDate = (date) =>
+  new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(
+    new Date(date)
+  );
+
+/**
+ * Helper: Create an in-app notification record.
+ * Kept private to this module – not exported.
+ */
 const createNotification = async (userId, type, title, message, link = '') => {
   await Notification.create({ user: userId, type, title, message, link });
 };
 
-// @desc  Book appointment
+// @desc  Book an appointment
 // @route POST /api/appointments
+// @access Private (customer only)
 exports.bookAppointment = async (req, res) => {
   const { businessId, serviceId, date, timeSlot, notes } = req.body;
 
-  const business = await Business.findById(businessId).populate('owner');
+  // Validate business exists and is active
+  const business = await Business.findById(businessId).populate('owner', 'name email');
   if (!business || !business.isApproved) {
     return res.status(404).json({ success: false, message: 'Business not found.' });
   }
 
+  // Validate service belongs to this business
   const service = await Service.findById(serviceId);
-  if (!service) return res.status(404).json({ success: false, message: 'Service not found.' });
-
-  // Validate date is in the future
-  const appointmentDate = new Date(date);
-  if (appointmentDate < new Date()) {
-    return res.status(400).json({ success: false, message: 'Cannot book in the past.' });
+  if (!service || service.business.toString() !== businessId) {
+    return res.status(404).json({ success: false, message: 'Service not found.' });
   }
 
-  // Check blocked dates
+  // Validate appointment date is in the future
+  const appointmentDate = new Date(date);
+  if (appointmentDate < new Date()) {
+    return res.status(400).json({ success: false, message: 'Cannot book an appointment in the past.' });
+  }
+
+  // Check if this date is blocked by the business
   const isBlocked = business.blockedDates.some(
     (d) => new Date(d).toDateString() === appointmentDate.toDateString()
   );
-  if (isBlocked) return res.status(400).json({ success: false, message: 'This date is blocked.' });
+  if (isBlocked) {
+    return res.status(400).json({ success: false, message: 'This date is blocked by the business.' });
+  }
 
-  // Check double booking
+  // Check for double-booking: same business + same day + same time slot (non-cancelled)
   const existing = await Appointment.findOne({
     business: businessId,
     date: appointmentDate,
     'timeSlot.start': timeSlot.start,
     status: { $nin: ['cancelled'] },
   });
-  if (existing) return res.status(400).json({ success: false, message: 'This slot is already booked.' });
+  if (existing) {
+    return res.status(409).json({ success: false, message: 'This time slot is already booked.' });
+  }
 
+  // Create the appointment
   const appointment = await Appointment.create({
     customer: req.user._id,
     business: businessId,
@@ -52,64 +80,81 @@ exports.bookAppointment = async (req, res) => {
     totalAmount: service.price,
   });
 
+  // Populate for response and emails
   await appointment.populate([
     { path: 'business', select: 'name email owner' },
     { path: 'service', select: 'name price duration' },
     { path: 'customer', select: 'name email' },
   ]);
 
-  // Notifications
-  await createNotification(
-    req.user._id, 'appointment_booked',
-    'Appointment Booked',
-    `Your appointment at ${business.name} has been booked for ${appointmentDate.toLocaleDateString()}.`,
-    `/dashboard/customer`
-  );
-  await createNotification(
-    business.owner._id, 'appointment_booked',
-    'New Appointment Request',
-    `${req.user.name} booked ${service.name} on ${appointmentDate.toLocaleDateString()}.`,
-    `/dashboard/business`
-  );
+  const formattedDate = formatDate(appointmentDate);
 
-  // Email confirmation
-  await sendEmail({
-    to: req.user.email,
-    subject: `Appointment Confirmed – ${business.name}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px;">
-        <h2 style="color: #6366f1;">Appointment Booked! 🎉</h2>
-        <p>Hi ${req.user.name},</p>
-        <p>Your appointment has been booked successfully.</p>
-        <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="padding:8px;font-weight:bold;">Business</td><td>${business.name}</td></tr>
-          <tr><td style="padding:8px;font-weight:bold;">Service</td><td>${service.name}</td></tr>
-          <tr><td style="padding:8px;font-weight:bold;">Date</td><td>${appointmentDate.toDateString()}</td></tr>
-          <tr><td style="padding:8px;font-weight:bold;">Time</td><td>${timeSlot.start} – ${timeSlot.end}</td></tr>
-          <tr><td style="padding:8px;font-weight:bold;">Amount</td><td>$${service.price}</td></tr>
-        </table>
-      </div>
-    `,
-  });
+  // In-app notifications (non-blocking)
+  await Promise.allSettled([
+    createNotification(
+      req.user._id,
+      'appointment_booked',
+      'Appointment Booked',
+      `Your appointment at ${business.name} has been booked for ${formattedDate}.`,
+      '/dashboard/customer'
+    ),
+    createNotification(
+      business.owner._id,
+      'new_appointment',
+      'New Appointment Request',
+      `${req.user.name} booked ${service.name} on ${formattedDate}.`,
+      '/dashboard/business'
+    ),
+  ]);
+
+  // Emails (non-blocking – failures are logged but don't break the response)
+  await Promise.allSettled([
+    // Customer gets a booking confirmation
+    sendAppointmentConfirmationEmail({
+      to: req.user.email,
+      customerName: req.user.name,
+      businessName: business.name,
+      serviceName: service.name,
+      date: formattedDate,
+      timeSlot,
+      amount: service.price,
+    }),
+    // Business owner gets a new booking alert
+    sendNewAppointmentOwnerEmail({
+      to: business.owner.email,
+      ownerName: business.owner.name,
+      customerName: req.user.name,
+      serviceName: service.name,
+      date: formattedDate,
+      timeSlot,
+    }),
+  ]);
 
   res.status(201).json({ success: true, data: appointment });
 };
 
-// @desc  Get appointments (filtered by role)
+// @desc  Get appointments (filtered by requester's role)
 // @route GET /api/appointments
+// @access Private
 exports.getAppointments = async (req, res) => {
   const { status, page = 1, limit = 20 } = req.query;
   const query = {};
 
   if (req.user.role === 'customer') {
+    // Customers see their own appointments
     query.customer = req.user._id;
   } else if (req.user.role === 'business_owner') {
+    // Business owners see appointments for their business
     const business = await Business.findOne({ owner: req.user._id });
     if (!business) return res.json({ success: true, data: [], pagination: {} });
     query.business = business._id;
   }
 
-  if (status) query.status = status;
+  // Optional status filter (supports comma-separated values e.g. "pending,confirmed")
+  if (status) {
+    const statuses = status.split(',').map((s) => s.trim());
+    query.status = { $in: statuses };
+  }
 
   const skip = (Number(page) - 1) * Number(limit);
   const [appointments, total] = await Promise.all([
@@ -126,87 +171,120 @@ exports.getAppointments = async (req, res) => {
   res.json({
     success: true,
     data: appointments,
-    pagination: { page: Number(page), limit: Number(limit), total, pages: Math.ceil(total / Number(limit)) },
+    pagination: {
+      page: Number(page),
+      limit: Number(limit),
+      total,
+      pages: Math.ceil(total / Number(limit)),
+    },
   });
 };
 
-// @desc  Get single appointment
+// @desc  Get a single appointment
 // @route GET /api/appointments/:id
+// @access Private
 exports.getAppointment = async (req, res) => {
   const appointment = await Appointment.findById(req.params.id)
     .populate('customer', 'name email avatar phone')
     .populate('business', 'name images phone email')
     .populate('service', 'name price duration');
-  if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found.' });
 
-  // Allow customer, business owner, or admin
-  const isOwner = appointment.customer._id.toString() === req.user._id.toString();
-  const business = await Business.findById(appointment.business._id);
-  const isBusinessOwner = business && business.owner.toString() === req.user._id.toString();
-  if (!isOwner && !isBusinessOwner && req.user.role !== 'admin') {
-    return res.status(403).json({ success: false, message: 'Not authorized.' });
+  if (!appointment) {
+    return res.status(404).json({ success: false, message: 'Appointment not found.' });
+  }
+
+  // Authorization: only the customer or the business owner may view this appointment
+  const isCustomer = appointment.customer._id.toString() === req.user._id.toString();
+  const ownerBusiness = await Business.findOne({ owner: req.user._id });
+  const isBusinessOwner =
+    ownerBusiness && ownerBusiness._id.toString() === appointment.business._id.toString();
+
+  if (!isCustomer && !isBusinessOwner) {
+    return res.status(403).json({ success: false, message: 'Not authorized to view this appointment.' });
   }
 
   res.json({ success: true, data: appointment });
 };
 
-// @desc  Update appointment status
+// @desc  Update appointment status (confirm / complete / cancel)
 // @route PUT /api/appointments/:id/status
+// @access Private
 exports.updateStatus = async (req, res) => {
   const { status, cancellationReason } = req.body;
+  const VALID_STATUSES = ['confirmed', 'completed', 'cancelled'];
+
+  if (!VALID_STATUSES.includes(status)) {
+    return res.status(400).json({ success: false, message: `Status must be one of: ${VALID_STATUSES.join(', ')}` });
+  }
+
   const appointment = await Appointment.findById(req.params.id)
     .populate('customer', 'name email')
     .populate('business', 'name owner')
     .populate('service', 'name');
 
-  if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found.' });
+  if (!appointment) {
+    return res.status(404).json({ success: false, message: 'Appointment not found.' });
+  }
 
   const business = await Business.findById(appointment.business._id);
   const isBusinessOwner = business && business.owner.toString() === req.user._id.toString();
   const isCustomer = appointment.customer._id.toString() === req.user._id.toString();
 
-  // Permissions
+  // Role-based permission checks
+  if (req.user.role === 'customer' && !isCustomer) {
+    return res.status(403).json({ success: false, message: 'Not your appointment.' });
+  }
   if (req.user.role === 'customer' && status !== 'cancelled') {
     return res.status(403).json({ success: false, message: 'Customers can only cancel appointments.' });
   }
   if (req.user.role === 'business_owner' && !isBusinessOwner) {
-    return res.status(403).json({ success: false, message: 'Not your business.' });
+    return res.status(403).json({ success: false, message: 'Not your business appointment.' });
   }
 
+  // Apply status update
   appointment.status = status;
   if (status === 'cancelled') {
-    appointment.cancelledBy = req.user.role === 'customer' ? 'customer' : 'business';
+    appointment.cancelledBy = isCustomer ? 'customer' : 'business';
     appointment.cancellationReason = cancellationReason || '';
   }
   await appointment.save();
 
-  // Notify
-  const recipientId = isCustomer ? business.owner : appointment.customer._id;
-  const messages = {
-    confirmed: `Your appointment for ${appointment.service.name} on ${new Date(appointment.date).toDateString()} has been confirmed!`,
-    cancelled: `Appointment for ${appointment.service.name} on ${new Date(appointment.date).toDateString()} was cancelled.`,
-    completed: `Your appointment for ${appointment.service.name} has been marked as completed.`,
+  // Notify the other party
+  const formattedDate = formatDate(new Date(appointment.date));
+  const recipientIsCustomer = !isCustomer; // if the actor is the owner, notify the customer and vice versa
+
+  const notifyUserId = recipientIsCustomer ? appointment.customer._id : business.owner;
+  const notifyMessages = {
+    confirmed: `Your appointment for ${appointment.service.name} on ${formattedDate} has been confirmed!`,
+    cancelled: `Appointment for ${appointment.service.name} on ${formattedDate} was cancelled.`,
+    completed: `Your appointment for ${appointment.service.name} has been marked as completed. Please leave a review!`,
   };
-  if (messages[status]) {
-    await createNotification(
-      recipientId,
+
+  await Promise.allSettled([
+    createNotification(
+      notifyUserId,
       `appointment_${status}`,
       `Appointment ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-      messages[status]
-    );
-    // Email
-    const recipientUser = isCustomer
-      ? { email: appointment.customer.email, name: appointment.customer.name }
-      : await require('../models/User').findById(business.owner).select('name email');
+      notifyMessages[status]
+    ),
+    // Send email to affected party
+    (async () => {
+      const recipient = recipientIsCustomer
+        ? { email: appointment.customer.email, name: appointment.customer.name }
+        : await User.findById(business.owner).select('name email');
 
-    if (recipientUser) {
-      await sendEmail({
-        to: recipientUser.email,
-        subject: `Appointment ${status.charAt(0).toUpperCase() + status.slice(1)} – ${appointment.business.name}`,
-        html: `<p>Hi ${recipientUser.name},</p><p>${messages[status]}</p>`,
-      });
-    }
-  }
+      if (recipient) {
+        await sendAppointmentStatusEmail({
+          to: recipient.email,
+          recipientName: recipient.name,
+          status,
+          businessName: appointment.business.name,
+          serviceName: appointment.service.name,
+          date: formattedDate,
+        });
+      }
+    })(),
+  ]);
 
   res.json({ success: true, data: appointment });
 };

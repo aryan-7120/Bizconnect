@@ -52,7 +52,7 @@ app.use('/api/categories', require('./routes/categories'));
 app.use('/api/services', require('./routes/services'));
 app.use('/api/favorites', require('./routes/favorites'));
 app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/admin', require('./routes/admin'));
+// Note: No admin routes — the system has only two roles: customer and business_owner
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK', timestamp: new Date().toISOString() }));

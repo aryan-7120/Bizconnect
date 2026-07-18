@@ -26,9 +26,14 @@ export default function Navbar() {
 
   const getDashboardPath = () => {
     if (!user) return '/login';
-    if (user.role === 'admin') return '/dashboard/admin';
     if (user.role === 'business_owner') return '/dashboard/business';
     return '/dashboard/customer';
+  };
+
+  const getProfilePath = () => {
+    if (!user) return '/login';
+    if (user.role === 'business_owner') return '/dashboard/business/profile';
+    return '/dashboard/customer/profile';
   };
 
   return (
@@ -107,7 +112,6 @@ export default function Navbar() {
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{user?.email}</p>
                           <span className={clsx(
                             'inline-flex items-center mt-1.5 px-2 py-0.5 rounded-full text-xs font-medium',
-                            user?.role === 'admin' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                             user?.role === 'business_owner' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' :
                             'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                           )}>
@@ -122,6 +126,14 @@ export default function Navbar() {
                           >
                             <LayoutDashboard className="w-4 h-4 text-indigo-500" />
                             Dashboard
+                          </Link>
+                          <Link
+                            to={getProfilePath()}
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors"
+                          >
+                            <User className="w-4 h-4 text-indigo-500" />
+                            My Profile
                           </Link>
                           <button
                             onClick={handleLogout}

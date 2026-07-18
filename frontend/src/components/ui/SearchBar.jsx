@@ -48,24 +48,30 @@ export default function SearchBar({ className, placeholder = 'Search businesses,
   };
 
   return (
-    <div ref={ref} className={`relative ${className}`}>
+    <div ref={ref} className={`relative ${className || ''}`}>
       <form onSubmit={handleSearch}>
-        <div className="relative flex items-center">
-          <Search className="absolute left-4 w-5 h-5 text-gray-400" />
+        <div className="flex items-center gap-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all overflow-hidden">
+          {/* Search Icon — sits in its own flex child, never overlaps input text */}
+          <span className="flex-shrink-0 pl-4 pr-1 text-gray-400 pointer-events-none">
+            <Search className="w-4 h-4" />
+          </span>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => suggestions.length > 0 && setIsOpen(true)}
             placeholder={placeholder}
-            className="w-full pl-12 pr-10 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm shadow-sm"
+            className="flex-1 py-3 pr-2 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none text-sm min-w-0"
             aria-label="Search businesses"
             id="main-search"
             autoComplete="off"
           />
           {query && (
-            <button type="button" onClick={() => { setQuery(''); setSuggestions([]); setIsOpen(false); }}
-              className="absolute right-4 text-gray-400 hover:text-gray-600">
+            <button
+              type="button"
+              onClick={() => { setQuery(''); setSuggestions([]); setIsOpen(false); }}
+              className="flex-shrink-0 pr-3 pl-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+            >
               <X className="w-4 h-4" />
             </button>
           )}

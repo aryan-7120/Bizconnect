@@ -4,7 +4,10 @@ export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   getMe: () => api.get('/auth/me'),
-  updateProfile: (data) => api.put('/auth/me', data),
+  // If data is FormData (has avatar file), let the browser set Content-Type with boundary
+  updateProfile: (data) => api.put('/auth/me', data, {
+    headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
+  }),
   changePassword: (data) => api.put('/auth/change-password', data),
 };
 
@@ -12,6 +15,7 @@ export const businessAPI = {
   getAll: (params) => api.get('/businesses', { params }),
   getById: (id) => api.get(`/businesses/${id}`),
   getMy: () => api.get('/businesses/my'),
+  getAnalytics: () => api.get('/businesses/analytics'),
   create: (data) => api.post('/businesses', data),
   update: (id, data) => api.put(`/businesses/${id}`, data),
   delete: (id) => api.delete(`/businesses/${id}`),
@@ -60,10 +64,4 @@ export const notificationAPI = {
   delete: (id) => api.delete(`/notifications/${id}`),
 };
 
-export const adminAPI = {
-  getUsers: (params) => api.get('/admin/users', { params }),
-  toggleSuspend: (id) => api.put(`/admin/users/${id}/suspend`),
-  approveBusiness: (id, data) => api.put(`/admin/businesses/${id}/approve`, data),
-  getPlatformAnalytics: () => api.get('/admin/analytics/platform'),
-  getBusinessAnalytics: () => api.get('/admin/analytics/business'),
-};
+// Note: No admin API — the system has two roles only: customer and business_owner

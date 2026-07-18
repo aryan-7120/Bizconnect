@@ -8,18 +8,27 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import { PageLoader } from './components/ui/LoadingSpinner';
 
-// Lazy-loaded pages
+// ─── Lazy-loaded pages ─────────────────────────────────────────────────────────
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const BusinessListPage = lazy(() => import('./pages/BusinessListPage'));
 const BusinessProfilePage = lazy(() => import('./pages/BusinessProfilePage'));
+
+// Customer pages
 const CustomerDashboard = lazy(() => import('./pages/customer/CustomerDashboard'));
+const BookAppointmentPage = lazy(() => import('./pages/customer/BookAppointmentPage'));
+const CustomerProfilePage = lazy(() => import('./pages/customer/ProfilePage'));
+
+// Business Owner pages
 const BusinessDashboard = lazy(() => import('./pages/business/BusinessDashboard'));
 const BusinessSetupPage = lazy(() => import('./pages/business/BusinessSetupPage'));
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const BusinessReviewsPage = lazy(() => import('./pages/business/ReviewsPage'));
+const BusinessOwnerProfilePage = lazy(() => import('./pages/business/ProfilePage'));
 
-// Protected route wrapper
+// ─── Route Guards ───────────────────────────────────────────────────────────────
+
+/** Redirect to /login if not authenticated, or to / if role is not allowed */
 function ProtectedRoute({ allowedRoles }) {
   const { isAuthenticated, user } = useSelector((s) => s.auth);
   if (!isAuthenticated) return <Navigate to="/login" replace />;
@@ -29,7 +38,15 @@ function ProtectedRoute({ allowedRoles }) {
   return <Outlet />;
 }
 
-// Layout with Navbar + Footer
+/** Redirect authenticated users away from login/register */
+function GuestRoute() {
+  const { isAuthenticated } = useSelector((s) => s.auth);
+  return isAuthenticated ? <Navigate to="/" replace /> : <Outlet />;
+}
+
+// ─── Layouts ────────────────────────────────────────────────────────────────────
+
+/** Public pages: Navbar + Footer */
 function MainLayout() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -42,7 +59,7 @@ function MainLayout() {
   );
 }
 
-// Layout without Footer (for dashboards)
+/** Dashboard pages: Navbar only (no footer) */
 function DashboardLayout() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -54,18 +71,21 @@ function DashboardLayout() {
   );
 }
 
+// ─── App ────────────────────────────────────────────────────────────────────────
+
 export default function App() {
   const dispatch = useDispatch();
   const { token } = useSelector((s) => s.auth);
 
-  // Initialize theme
+  // Initialize dark/light theme from localStorage or system preference
   useEffect(() => {
-    const stored = localStorage.getItem('bizconnect_theme') ||
+    const stored =
+      localStorage.getItem('bizconnect_theme') ||
       (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     dispatch(setTheme(stored));
   }, []);
 
-  // Refresh user from token on mount
+  // Re-fetch current user data on page refresh (if token exists)
   useEffect(() => {
     if (token) dispatch(fetchMe());
   }, []);
@@ -88,32 +108,38 @@ export default function App() {
       />
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          {/* Public routes with Navbar + Footer */}
+          {/* ── Public routes with Navbar + Footer ── */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/businesses" element={<BusinessListPage />} />
             <Route path="/businesses/:id" element={<BusinessProfilePage />} />
           </Route>
 
-          {/* Auth routes (no nav) */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          {/* ── Auth routes (no nav, redirect if already logged in) ── */}
+          <Route element={<GuestRoute />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
 
-          {/* Protected dashboard routes */}
+          {/* ── Protected Dashboard routes ── */}
           <Route element={<DashboardLayout />}>
+            {/* Customer routes */}
             <Route element={<ProtectedRoute allowedRoles={['customer']} />}>
               <Route path="/dashboard/customer" element={<CustomerDashboard />} />
+              <Route path="/dashboard/customer/profile" element={<CustomerProfilePage />} />
+              <Route path="/book/:id" element={<BookAppointmentPage />} />
             </Route>
+
+            {/* Business Owner routes */}
             <Route element={<ProtectedRoute allowedRoles={['business_owner']} />}>
               <Route path="/dashboard/business" element={<BusinessDashboard />} />
               <Route path="/dashboard/business/setup" element={<BusinessSetupPage />} />
-            </Route>
-            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-              <Route path="/dashboard/admin" element={<AdminDashboard />} />
+              <Route path="/dashboard/business/reviews" element={<BusinessReviewsPage />} />
+              <Route path="/dashboard/business/profile" element={<BusinessOwnerProfilePage />} />
             </Route>
           </Route>
 
-          {/* 404 fallback */}
+          {/* ── 404 fallback ── */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
