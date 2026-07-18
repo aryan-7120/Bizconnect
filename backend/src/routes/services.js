@@ -6,6 +6,6 @@ const { authenticate, authorize } = require('../middleware/auth');
 router.get('/', getServices);
 router.post('/', authenticate, authorize('business_owner'), createService);
 router.put('/:id', authenticate, authorize('business_owner'), updateService);
-router.delete('/:id', authenticate, authorize('business_owner', 'admin'), deleteService);
+router.delete('/:id', authenticate, authorize('business_owner'), deleteService);
 
 module.exports = router;

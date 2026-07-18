@@ -16,7 +16,7 @@ const appointmentSchema = new mongoose.Schema(
       default: 'pending',
     },
     notes: { type: String, default: '' },
-    cancelledBy: { type: String, enum: ['customer', 'business', 'admin', ''], default: '' },
+    cancelledBy: { type: String, enum: ['customer', 'business', ''], default: '' },
     cancellationReason: { type: String, default: '' },
     totalAmount: { type: Number, default: 0 },
     reminderSent: { type: Boolean, default: false },

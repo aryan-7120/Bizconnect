@@ -12,7 +12,7 @@ const jwt = require('jsonwebtoken');
  *         _id: { type: string }
  *         name: { type: string }
  *         email: { type: string }
- *         role: { type: string, enum: [customer, business_owner, admin] }
+ *         role: { type: string, enum: [customer, business_owner] }
  *         avatar: { type: string }
  *         isActive: { type: boolean }
  *         isSuspended: { type: boolean }
@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
       match: [/^\S+@\S+\.\S+$/, 'Invalid email'],
     },
     password: { type: String, required: [true, 'Password is required'], minlength: 6, select: false },
-    role: { type: String, enum: ['customer', 'business_owner', 'admin'], default: 'customer' },
+    role: { type: String, enum: ['customer', 'business_owner'], default: 'customer' },
     avatar: { type: String, default: '' },
     phone: { type: String, default: '' },
     isActive: { type: Boolean, default: true },

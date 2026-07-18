@@ -29,7 +29,7 @@ exports.updateService = async (req, res) => {
 exports.deleteService = async (req, res) => {
   const service = await Service.findById(req.params.id).populate('business');
   if (!service) return res.status(404).json({ success: false, message: 'Service not found.' });
-  if (service.business.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  if (service.business.owner.toString() !== req.user._id.toString()) {
     return res.status(403).json({ success: false, message: 'Not authorized.' });
   }
   await service.deleteOne();
