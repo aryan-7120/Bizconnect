@@ -1,0 +1,155 @@
+import { Link } from 'react-router-dom';
+import { MapPin, Star, Clock, Shield, Heart } from 'lucide-react';
+import StarRating from '../ui/StarRating';
+import { favoriteAPI } from '../../api';
+import { useState } from 'react';
+import { useSelector } from 'react-redux';
+import toast from 'react-hot-toast';
+import clsx from 'clsx';
+
+const PLACEHOLDER_IMG = 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=200&fit=crop';
+
+export default function BusinessCard({ business, className }) {
+  const { isAuthenticated, user } = useSelector((s) => s.auth);
+  const [isFav, setIsFav] = useState(false);
+  const [toggling, setToggling] = useState(false);
+
+  const handleFavorite = async (e) => {
+    e.preventDefault();
+    if (!isAuthenticated || user?.role !== 'customer') {
+      toast.error('Please sign in as a customer to save favorites.');
+      return;
+    }
+    setToggling(true);
+    try {
+      const { data } = await favoriteAPI.toggle(business._id);
+      setIsFav(data.isFavorite);
+      toast.success(data.message);
+    } catch {
+      toast.error('Failed to update favorites');
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  const priceColors = {
+    '$': 'text-green-600 bg-green-50 dark:bg-green-900/20',
+    '$$': 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20',
+    '$$$': 'text-orange-600 bg-orange-50 dark:bg-orange-900/20',
+    '$$$$': 'text-red-600 bg-red-50 dark:bg-red-900/20',
+  };
+
+  return (
+    <Link
+      to={`/businesses/${business._id}`}
+      className={clsx(
+        'group block bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-card card-hover border border-gray-100 dark:border-slate-700',
+        className
+      )}
+    >
+      {/* Cover image */}
+      <div className="relative h-48 overflow-hidden">
+        <img
+          src={business.images?.cover || PLACEHOLDER_IMG}
+          alt={business.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+        {/* Category badge */}
+        {business.category && (
+          <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-2.5 py-1 rounded-full">
+            <span className="text-base">{business.category.icon}</span>
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{business.category.name}</span>
+          </div>
+        )}
+
+        {/* Favorite button */}
+        {user?.role === 'customer' && (
+          <button
+            onClick={handleFavorite}
+            disabled={toggling}
+            className={clsx(
+              'absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all',
+              isFav
+                ? 'bg-red-500 text-white shadow-lg'
+                : 'bg-white/90 dark:bg-slate-900/90 text-gray-400 hover:text-red-500'
+            )}
+            aria-label="Toggle favorite"
+          >
+            <Heart className={clsx('w-4 h-4', isFav && 'fill-current')} />
+          </button>
+        )}
+
+        {/* Verified badge */}
+        {business.isVerified && (
+          <div className="absolute bottom-3 right-3 bg-indigo-600 text-white flex items-center gap-1 px-2 py-0.5 rounded-full">
+            <Shield className="w-3 h-3" />
+            <span className="text-xs font-medium">Verified</span>
+          </div>
+        )}
+
+        {/* Logo */}
+        {business.images?.logo && (
+          <div className="absolute -bottom-6 left-4">
+            <img
+              src={business.images.logo}
+              alt={`${business.name} logo`}
+              className="w-12 h-12 rounded-xl object-cover border-2 border-white dark:border-slate-800 shadow-md"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className={clsx('p-5', business.images?.logo && 'pt-8')}>
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3 className="font-bold text-gray-900 dark:text-white text-lg leading-tight line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+            {business.name}
+          </h3>
+          {business.priceRange && (
+            <span className={clsx('text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap', priceColors[business.priceRange])}>
+              {business.priceRange}
+            </span>
+          )}
+        </div>
+
+        {/* Rating */}
+        <div className="flex items-center gap-2 mb-3">
+          <StarRating rating={business.avgRating || 0} size="sm" />
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            ({business.totalReviews || 0} reviews)
+          </span>
+        </div>
+
+        {/* Description */}
+        {business.description && (
+          <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">
+            {business.description}
+          </p>
+        )}
+
+        {/* Location */}
+        {business.address?.city && (
+          <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+            <MapPin className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+            <span className="truncate">
+              {[business.address.city, business.address.state].filter(Boolean).join(', ')}
+            </span>
+          </div>
+        )}
+
+        {/* Book Now CTA */}
+        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
+          <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" /> Available today
+          </span>
+          <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 group-hover:underline">
+            Book Now →
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
