@@ -2,11 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/authSlice';
-import { toggleTheme } from '../../store/themeSlice';
-import {
-  Sun, Moon, Bell, User, ChevronDown, LogOut,
-  LayoutDashboard, Menu, X, Sparkles
-} from 'lucide-react';
+import { Bell, User, ChevronDown, LogOut, LayoutDashboard, Menu, X, Sparkles } from 'lucide-react';
 import SearchBar from '../ui/SearchBar';
 import clsx from 'clsx';
 
@@ -14,7 +10,6 @@ export default function Navbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useSelector((s) => s.auth);
-  const { mode } = useSelector((s) => s.theme);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -26,21 +21,18 @@ export default function Navbar() {
 
   const getDashboardPath = () => {
     if (!user) return '/login';
-    if (user.role === 'business_owner') return '/dashboard/business';
-    return '/dashboard/customer';
+    return user.role === 'business_owner' ? '/dashboard/business' : '/dashboard/customer';
   };
 
   const getProfilePath = () => {
     if (!user) return '/login';
-    if (user.role === 'business_owner') return '/dashboard/business/profile';
-    return '/dashboard/customer/profile';
+    return user.role === 'business_owner' ? '/dashboard/business/profile' : '/dashboard/customer/profile';
   };
 
   return (
     <nav className="sticky top-0 z-40 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 transition-all">
               <Sparkles className="w-5 h-5 text-white" />
@@ -50,30 +42,13 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Search (desktop) */}
           <div className="hidden md:block flex-1 max-w-md mx-6">
             <SearchBar />
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-2">
-            {/* Theme toggle */}
-            <button
-              onClick={() => dispatch(toggleTheme())}
-              className="p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Toggle theme"
-              id="theme-toggle"
-            >
-              {mode === 'dark' ? (
-                <Sun className="w-5 h-5 text-amber-400" />
-              ) : (
-                <Moon className="w-5 h-5 text-indigo-500" />
-              )}
-            </button>
-
             {isAuthenticated ? (
               <>
-                {/* Notifications */}
                 <Link
                   to={getDashboardPath()}
                   className="p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
@@ -82,7 +57,6 @@ export default function Navbar() {
                   <LayoutDashboard className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </Link>
 
-                {/* User menu */}
                 <div className="relative">
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -112,8 +86,9 @@ export default function Navbar() {
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{user?.email}</p>
                           <span className={clsx(
                             'inline-flex items-center mt-1.5 px-2 py-0.5 rounded-full text-xs font-medium',
-                            user?.role === 'business_owner' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' :
-                            'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                            user?.role === 'business_owner'
+                              ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+                              : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                           )}>
                             {user?.role?.replace('_', ' ')}
                           </span>
@@ -156,7 +131,6 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
@@ -167,7 +141,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile search */}
         {mobileOpen && (
           <div className="md:hidden pb-4 space-y-3 animate-slide-up">
             <SearchBar className="w-full" />

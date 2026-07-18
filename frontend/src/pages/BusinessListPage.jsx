@@ -74,18 +74,20 @@ export default function BusinessListPage() {
           <h1 className="text-3xl font-bold mb-4">Discover Businesses</h1>
           {/* Search */}
           <div className="flex gap-3 max-w-2xl">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div className="flex-1 flex items-center bg-white/10 border border-white/20 backdrop-blur-sm rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-white/40">
+              <span className="flex-shrink-0 pl-4 pr-1 text-indigo-200 pointer-events-none">
+                <Search className="w-4 h-4" />
+              </span>
               <input
                 type="text"
                 value={filters.search}
                 onChange={(e) => updateFilter('search', e.target.value)}
                 placeholder="Search businesses, services, or locations..."
-                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-white/40"
+                className="flex-1 py-3 pr-2 bg-transparent text-white placeholder-indigo-200 focus:outline-none text-sm min-w-0"
                 id="business-search"
               />
               {filters.search && (
-                <button onClick={() => updateFilter('search', '')} className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-200 hover:text-white">
+                <button onClick={() => updateFilter('search', '')} className="flex-shrink-0 pr-3 pl-1 text-indigo-200 hover:text-white">
                   <X className="w-4 h-4" />
                 </button>
               )}

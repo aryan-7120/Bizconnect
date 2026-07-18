@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Star, Clock, Shield, Heart } from 'lucide-react';
+import { MapPin, Clock, Shield, Heart } from 'lucide-react';
 import StarRating from '../ui/StarRating';
 import { favoriteAPI } from '../../api';
 import { useState } from 'react';
@@ -32,13 +32,6 @@ export default function BusinessCard({ business, className }) {
     }
   };
 
-  const priceColors = {
-    '$': 'text-green-600 bg-green-50 dark:bg-green-900/20',
-    '$$': 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20',
-    '$$$': 'text-orange-600 bg-orange-50 dark:bg-orange-900/20',
-    '$$$$': 'text-red-600 bg-red-50 dark:bg-red-900/20',
-  };
-
   return (
     <Link
       to={`/businesses/${business._id}`}
@@ -47,7 +40,6 @@ export default function BusinessCard({ business, className }) {
         className
       )}
     >
-      {/* Cover image */}
       <div className="relative h-48 overflow-hidden">
         <img
           src={business.images?.cover || PLACEHOLDER_IMG}
@@ -57,7 +49,6 @@ export default function BusinessCard({ business, className }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-        {/* Category badge */}
         {business.category && (
           <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-2.5 py-1 rounded-full">
             <span className="text-base">{business.category.icon}</span>
@@ -65,7 +56,6 @@ export default function BusinessCard({ business, className }) {
           </div>
         )}
 
-        {/* Favorite button */}
         {user?.role === 'customer' && (
           <button
             onClick={handleFavorite}
@@ -82,7 +72,6 @@ export default function BusinessCard({ business, className }) {
           </button>
         )}
 
-        {/* Verified badge */}
         {business.isVerified && (
           <div className="absolute bottom-3 right-3 bg-indigo-600 text-white flex items-center gap-1 px-2 py-0.5 rounded-full">
             <Shield className="w-3 h-3" />
@@ -90,7 +79,6 @@ export default function BusinessCard({ business, className }) {
           </div>
         )}
 
-        {/* Logo */}
         {business.images?.logo && (
           <div className="absolute -bottom-6 left-4">
             <img
@@ -102,20 +90,11 @@ export default function BusinessCard({ business, className }) {
         )}
       </div>
 
-      {/* Content */}
       <div className={clsx('p-5', business.images?.logo && 'pt-8')}>
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-bold text-gray-900 dark:text-white text-lg leading-tight line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-            {business.name}
-          </h3>
-          {business.priceRange && (
-            <span className={clsx('text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap', priceColors[business.priceRange])}>
-              {business.priceRange}
-            </span>
-          )}
-        </div>
+        <h3 className="font-bold text-gray-900 dark:text-white text-lg leading-tight line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-2">
+          {business.name}
+        </h3>
 
-        {/* Rating */}
         <div className="flex items-center gap-2 mb-3">
           <StarRating rating={business.avgRating || 0} size="sm" />
           <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -123,14 +102,12 @@ export default function BusinessCard({ business, className }) {
           </span>
         </div>
 
-        {/* Description */}
         {business.description && (
           <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">
             {business.description}
           </p>
         )}
 
-        {/* Location */}
         {business.address?.city && (
           <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
             <MapPin className="w-4 h-4 text-indigo-400 flex-shrink-0" />
@@ -140,7 +117,6 @@ export default function BusinessCard({ business, className }) {
           </div>
         )}
 
-        {/* Book Now CTA */}
         <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
           <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" /> Available today

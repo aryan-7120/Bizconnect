@@ -17,7 +17,6 @@ const BusinessProfilePage = lazy(() => import('./pages/BusinessProfilePage'));
 
 // Customer pages
 const CustomerDashboard = lazy(() => import('./pages/customer/CustomerDashboard'));
-const BookAppointmentPage = lazy(() => import('./pages/customer/BookAppointmentPage'));
 const CustomerProfilePage = lazy(() => import('./pages/customer/ProfilePage'));
 
 // Business Owner pages
@@ -127,7 +126,6 @@ export default function App() {
             <Route element={<ProtectedRoute allowedRoles={['customer']} />}>
               <Route path="/dashboard/customer" element={<CustomerDashboard />} />
               <Route path="/dashboard/customer/profile" element={<CustomerProfilePage />} />
-              <Route path="/book/:id" element={<BookAppointmentPage />} />
             </Route>
 
             {/* Business Owner routes */}
