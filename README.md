@@ -24,10 +24,7 @@
 - 💬 **Reply to Reviews** — Respond publicly to customer feedback
 
 ### Platform
-- 🌙 **Dark Mode** — System-aware with manual toggle
 - 🔒 **Secure Authentication** — JWT + bcrypt, HTTP-only considerations, rate limiting, NoSQL injection protection
-- 🛡️ **Admin Panel** — Manage users, view platform-wide analytics, suspend businesses
-- 📖 **Swagger API Docs** — Full interactive API documentation at `/api/docs`
 
 ---
 
@@ -41,7 +38,6 @@
 | **Authentication** | JWT + bcryptjs |
 | **Image Storage** | Cloudinary + Multer |
 | **Email** | Nodemailer (Gmail/SMTP) |
-| **API Docs** | Swagger / OpenAPI 3.0 |
 | **Security** | Helmet, express-rate-limit, express-mongo-sanitize, compression |
 
 ---
