@@ -18,6 +18,9 @@ export const businessAPI = {
   getAnalytics: () => api.get('/businesses/analytics'),
   create: (data) => api.post('/businesses', data),
   update: (id, data) => api.put(`/businesses/${id}`, data),
+  updateWithFormData: (id, formData) => api.put(`/businesses/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
   delete: (id) => api.delete(`/businesses/${id}`),
   getSlots: (id, params) => api.get(`/businesses/${id}/slots`, { params }),
   updateBlockedDates: (id, data) => api.put(`/businesses/${id}/blocked-dates`, data),

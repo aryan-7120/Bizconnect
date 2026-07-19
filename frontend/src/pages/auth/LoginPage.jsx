@@ -19,7 +19,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (isAuthenticated && user) {
       const dash = user.role === 'admin' ? '/dashboard/admin' :
-                   user.role === 'business_owner' ? '/dashboard/business' : '/dashboard/customer';
+        user.role === 'business_owner' ? '/dashboard/business' : '/dashboard/customer';
       navigate(dash, { replace: true });
     }
   }, [isAuthenticated, user]);
@@ -119,10 +119,10 @@ export default function LoginPage() {
 
               {/* Demo credentials */}
               <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 text-xs text-gray-600 dark:text-gray-400">
-                <p className="font-semibold mb-1 text-indigo-700 dark:text-indigo-400">Demo Accounts:</p>
-                <p>Customer: customer@demo.com / password123</p>
-                <p>Business: owner@demo.com / password123</p>
-                <p>Admin: admin@demo.com / password123</p>
+                <p className="font-semibold mb-1 text-indigo-700 dark:text-indigo-400"> </p>
+                <p> </p>
+                <p> </p>
+                <p>  </p>
               </div>
 
               <button

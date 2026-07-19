@@ -1,127 +1,230 @@
-# BizConnect – Business Directory & Appointment Booking Platform
+# BizConnect 🔗
 
-A modern, full-stack MERN application that allows businesses to create public profiles and enables customers to discover and book appointments online.
+> **A full-stack MERN business directory and appointment booking platform** — built for business owners who want a professional online presence, and customers who want to discover and book local services effortlessly.
+
+---
+
+## ✨ Features
+
+### For Customers
+- 🔍 **Smart Search** — Real-time search with text index, filter by category, city, price range, and rating
+- 📅 **Multi-step Booking** — Pick a service → choose a date → select a time slot → confirm
+- ⭐ **Reviews & Ratings** — Rate businesses after your appointment, read owner replies
+- ❤️ **Favourites** — Save businesses for quick access later
+- 🔔 **Email Notifications** — Booking confirmations and reminders sent automatically
+- 📱 **Responsive** — Fully usable on mobile, tablet, and desktop
+
+### For Business Owners
+- 🏢 **Business Profile** — Set name, category, tagline, description, tags, price range
+- 🖼️ **Image Management** — Upload cover photo and logo directly from your dashboard
+- ✏️ **Edit Everything** — Update business details, working hours, contact info, social links anytime
+- 📊 **Analytics Dashboard** — Monthly booking charts, status breakdown, popular services
+- 🗓️ **Appointment Management** — Confirm, reject, or complete bookings in one click
+- 📦 **Service Management** — Add, edit, and delete your services with pricing and duration
+- 💬 **Reply to Reviews** — Respond publicly to customer feedback
+
+### Platform
+- 🌙 **Dark Mode** — System-aware with manual toggle
+- 🔒 **Secure Authentication** — JWT + bcrypt, HTTP-only considerations, rate limiting, NoSQL injection protection
+- 🛡️ **Admin Panel** — Manage users, view platform-wide analytics, suspend businesses
+- 📖 **Swagger API Docs** — Full interactive API documentation at `/api/docs`
+
+---
 
 ## 🚀 Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 18 + Vite, Tailwind CSS, Redux Toolkit, Recharts |
-| Backend | Node.js + Express.js |
-| Database | MongoDB + Mongoose |
-| Auth | JWT + bcrypt |
-| Images | Cloudinary + Multer |
-| Email | Nodemailer |
-| API Docs | Swagger/OpenAPI at `/api/docs` |
+| **Frontend** | React 19, Vite 8, Tailwind CSS 4, Redux Toolkit, Recharts, Framer Motion |
+| **Backend** | Node.js, Express.js |
+| **Database** | MongoDB + Mongoose |
+| **Authentication** | JWT + bcryptjs |
+| **Image Storage** | Cloudinary + Multer |
+| **Email** | Nodemailer (Gmail/SMTP) |
+| **API Docs** | Swagger / OpenAPI 3.0 |
+| **Security** | Helmet, express-rate-limit, express-mongo-sanitize, compression |
+
+---
 
 ## 📁 Project Structure
 
 ```
 bizconnect/
-├── backend/                 # Express API
+├── backend/
 │   ├── src/
-│   │   ├── config/          # DB, Cloudinary, email, Swagger
-│   │   ├── controllers/     # Business logic
-│   │   ├── middleware/      # Auth, error handler
-│   │   ├── models/          # Mongoose schemas
-│   │   ├── routes/          # Express routes
-│   │   └── services/        # Email service
-│   └── .env.example
-└── frontend/                # React + Vite
-    └── src/
-        ├── api/             # Axios API layer
-        ├── components/      # Reusable components
-        ├── pages/           # Route pages
-        └── store/           # Redux slices
+│   │   ├── config/          # DB connection, Cloudinary, Nodemailer, Swagger
+│   │   ├── controllers/     # Route handlers (business, auth, reviews, etc.)
+│   │   ├── middleware/      # JWT auth, role authorization, error handler
+│   │   ├── models/          # Mongoose schemas (User, Business, Appointment, Review…)
+│   │   ├── routes/          # Express routers
+│   │   ├── services/        # Email service
+│   │   └── utils/           # Helpers
+│   ├── .env.example         # Environment variable template — copy to .env
+│   └── package.json
+│
+└── frontend/
+    ├── src/
+    │   ├── api/             # Axios client + per-resource API modules
+    │   ├── components/      # Reusable UI components (StarRating, BusinessCard…)
+    │   ├── hooks/           # Custom React hooks
+    │   ├── pages/           # Route-level page components
+    │   └── store/           # Redux slices (auth, theme)
+    ├── public/              # Static assets (favicon, icons)
+    ├── index.html
+    └── package.json
 ```
 
-## 🛠️ Setup & Running
+---
 
-### 1. Backend
+## ⚙️ Getting Started
+
+### Prerequisites
+
+- **Node.js** ≥ 18
+- **MongoDB** (local or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
+- **Cloudinary** account (free tier is fine) — for image uploads
+- **Gmail App Password** (optional) — for email notifications
+
+---
+
+### 1. Clone the repo
 
 ```bash
-cd bizconnect/backend
-# Copy and edit environment variables
+git clone https://github.com/your-username/bizconnect.git
+cd bizconnect
+```
+
+### 2. Set up the Backend
+
+```bash
+cd backend
+
+# Copy the environment template
 cp .env.example .env
-# Fill in: MONGO_URI, CLOUDINARY_*, EMAIL_* credentials
+# Then open .env and fill in your values (see Environment Variables below)
 
 npm install
-npm run dev    # starts on http://localhost:5000
+npm run dev        # API starts at http://localhost:5000
 ```
 
-### 2. Frontend
+### 3. Set up the Frontend
 
 ```bash
-cd bizconnect/frontend
+cd ../frontend
 npm install
-npm run dev    # starts on http://localhost:5173
+npm run dev        # App starts at http://localhost:5173
 ```
 
-### 3. Environment Variables (backend/.env)
+Both servers must be running simultaneously.
+
+---
+
+## 🔑 Environment Variables
+
+Create `backend/.env` from `backend/.env.example`:
 
 ```env
+# ── Database ──────────────────────────────────────
 MONGO_URI=mongodb://localhost:27017/bizconnect
+
+# ── Server ────────────────────────────────────────
 PORT=5000
-JWT_SECRET=your_super_secret_key
+NODE_ENV=development
+
+# ── Authentication ────────────────────────────────
+JWT_SECRET=replace_with_a_long_random_secret_string
 JWT_EXPIRE=7d
 
-# Cloudinary (for image uploads)
+# ── Cloudinary (image uploads) ────────────────────
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
-# Email notifications
+# ── Email notifications (optional) ───────────────
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your@gmail.com
-EMAIL_PASS=your_app_password
+EMAIL_PASS=your_gmail_app_password
 EMAIL_FROM=BizConnect <noreply@bizconnect.com>
 
+# ── CORS ──────────────────────────────────────────
 CLIENT_URL=http://localhost:5173
 ```
 
+> **Never commit your `.env` file.** It is listed in `.gitignore`.
+
+---
+
 ## 👤 User Roles
 
-| Role | Capabilities |
+| Role | What They Can Do |
 |---|---|
-| **Customer** | Browse, search, book appointments, leave reviews, save favorites |
-| **Business Owner** | Manage profile, services, appointments, view analytics |
-| **Admin** | Approve businesses, manage users, view platform stats |
+| **Customer** | Browse businesses, book appointments, write reviews, save favourites |
+| **Business Owner** | Manage their profile, images, services, appointments, view analytics |
+| **Admin** | View platform stats, manage all users and businesses |
 
-## 🔑 API Endpoints
+---
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/auth/register` | Register user |
-| POST | `/api/auth/login` | Login |
-| GET | `/api/businesses` | List businesses (filters, pagination) |
-| GET | `/api/businesses/:id` | Business profile |
-| GET | `/api/businesses/:id/slots` | Available time slots |
-| POST | `/api/appointments` | Book appointment |
-| PUT | `/api/appointments/:id/status` | Update status |
-| GET | `/api/reviews/business/:id` | Business reviews |
-| GET | `/api/admin/analytics/platform` | Platform analytics |
+## 🔌 API Overview
 
-Full Swagger docs at: **http://localhost:5000/api/docs**
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | — | Create a new account |
+| `POST` | `/api/auth/login` | — | Login and receive JWT |
+| `GET` | `/api/auth/me` | ✅ | Get current user |
+| `GET` | `/api/businesses` | — | List businesses (search, filter, paginate) |
+| `GET` | `/api/businesses/:id` | — | Business profile |
+| `GET` | `/api/businesses/:id/slots` | — | Available booking slots |
+| `POST` | `/api/businesses` | Owner | Create business profile |
+| `PUT` | `/api/businesses/:id` | Owner | Update business details + images |
+| `GET` | `/api/appointments` | ✅ | List my appointments |
+| `POST` | `/api/appointments` | Customer | Book an appointment |
+| `PUT` | `/api/appointments/:id/status` | ✅ | Confirm / cancel / complete |
+| `GET` | `/api/reviews/business/:businessId` | — | Reviews for a business |
+| `POST` | `/api/reviews` | Customer | Submit a review |
+| `POST` | `/api/reviews/sync-ratings` | ✅ | Recalculate all business ratings |
+| `GET` | `/api/categories` | — | All categories |
+| `GET` | `/api/services` | — | Services for a business |
+| `GET` | `/api/favorites` | Customer | My favourites |
+| `GET` | `/api/admin/analytics/platform` | Admin | Platform-wide stats |
 
-## ✨ Features
+📖 Full interactive docs: **http://localhost:5000/api/docs**
 
-- 🔍 **Smart Search** – Real-time suggestions with text search
-- 📅 **Multi-step Booking** – Service → Date → Time → Confirm
-- ⭐ **Reviews System** – Ratings, comments, owner replies
-- 📊 **Analytics Dashboards** – Charts for bookings, revenue, popular services
-- 🌙 **Dark Mode** – System-aware with toggle
-- 📱 **Responsive** – Mobile-first design
-- 🔔 **Email Notifications** – Booking confirmations, reminders
-- 🛡️ **Business Verification** – Admin-approved badges
-- ❤️ **Favorites** – Save preferred businesses
-- 🔒 **Secure Auth** – JWT + bcrypt, rate limiting, sanitization
+---
 
-## 📸 Key Pages
+## 📸 Pages
 
-- `/` – Landing with hero, categories, featured businesses
-- `/businesses` – Directory with search + filters
-- `/businesses/:id` – Profile with tabs (overview, services, gallery, reviews, hours)
-- `/dashboard/customer` – Appointments, favorites, reviews
-- `/dashboard/business` – Analytics, appointment management, services
-- `/dashboard/admin` – Platform stats, user management
+| Route | Description |
+|---|---|
+| `/` | Landing page — hero, categories, featured businesses |
+| `/businesses` | Explore directory — search + category + price filter |
+| `/businesses/:id` | Business profile — overview, services, gallery, reviews, hours |
+| `/book/:businessId` | Multi-step booking flow |
+| `/dashboard/customer` | Customer hub — appointments, favourites, reviews |
+| `/dashboard/business` | Owner hub — analytics, appointments, services, edit profile |
+| `/dashboard/admin` | Admin panel — platform stats, user/business management |
+| `/login` · `/register` | Auth pages |
+
+---
+
+## 🛠️ Available Scripts
+
+### Backend
+```bash
+npm run dev      # Start with nodemon (hot-reload)
+npm start        # Start in production mode
+```
+
+### Frontend
+```bash
+npm run dev      # Start Vite dev server
+npm run build    # Build for production → dist/
+npm run preview  # Preview the production build
+npm run lint     # Run oxlint
+```
+
+---
+
+## 📄 License
+
+MIT — free to use, modify, and distribute.

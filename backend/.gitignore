@@ -1,0 +1,29 @@
+# ─── Environment & Secrets ─────────────────────────────────────────────────
+# IMPORTANT: Never commit your real .env — it contains API keys and JWT secrets
+.env
+.env.*
+!.env.example
+
+# Private key files
+*.pem
+*.key
+*.p12
+*.cert
+
+# ─── Dependencies ───────────────────────────────────────────────────────────
+node_modules/
+
+# ─── Logs ───────────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+
+# ─── OS / Editor ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# ─── Uploads (if you ever store files locally instead of Cloudinary) ────────
+uploads/

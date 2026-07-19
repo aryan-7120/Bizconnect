@@ -36,7 +36,7 @@ export default function StarRating({ rating, max = 5, size = 'sm', showCount, co
           ({count ?? 0})
         </span>
       )}
-      {!showCount && rating > 0 && (
+      {!showCount && rating > 0 && !interactive && (
         <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
           {typeof rating === 'number' ? rating.toFixed(1) : rating}
         </span>

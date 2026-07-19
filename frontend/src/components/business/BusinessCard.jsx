@@ -91,14 +91,24 @@ export default function BusinessCard({ business, className }) {
       </div>
 
       <div className={clsx('p-5', business.images?.logo && 'pt-8')}>
-        <h3 className="font-bold text-gray-900 dark:text-white text-lg leading-tight line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-2">
-          {business.name}
-        </h3>
+        <div className="flex items-start justify-between mb-1">
+          <h3 className="font-bold text-gray-900 dark:text-white text-lg leading-tight line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex-1 mr-2">
+            {business.name}
+          </h3>
+          {business.priceRange && (
+            <span className="flex-shrink-0 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-lg">
+              {business.priceRange}
+            </span>
+          )}
+        </div>
 
         <div className="flex items-center gap-2 mb-3">
           <StarRating rating={business.avgRating || 0} size="sm" />
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            ({business.totalReviews || 0} reviews)
+          <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+            {(business.avgRating || 0).toFixed(1)}
+          </span>
+          <span className="text-sm text-gray-400 dark:text-gray-500">
+            ({business.totalReviews || 0} {business.totalReviews === 1 ? 'review' : 'reviews'})
           </span>
         </div>
 

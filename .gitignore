@@ -2,16 +2,20 @@
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.cert
 
 # ─── Dependencies ───────────────────────────────────────────────────────────
 node_modules/
+.pnp
+.pnp.js
 
 # ─── Build Output ───────────────────────────────────────────────────────────
 dist/
 dist-ssr/
-
-# ─── Vite Cache ─────────────────────────────────────────────────────────────
-.vite/
+build/
+out/
 
 # ─── Logs ───────────────────────────────────────────────────────────────────
 logs/
@@ -22,10 +26,18 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# ─── Local / Temp ───────────────────────────────────────────────────────────
-*.local
-*.tmp
-*.bak
+# ─── Runtime / Cache ────────────────────────────────────────────────────────
+.cache/
+.parcel-cache/
+.vite/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+
+# ─── OS Artifacts ───────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
 
 # ─── Editor Directories ─────────────────────────────────────────────────────
 .vscode/*
@@ -37,7 +49,13 @@ lerna-debug.log*
 *.sln
 *.sw?
 
-# ─── OS Artifacts ───────────────────────────────────────────────────────────
-.DS_Store
-Thumbs.db
-desktop.ini
+# ─── Testing ────────────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ─── Temporary / Scratch Files ──────────────────────────────────────────────
+*.local
+*.tmp
+*.bak
+tmp/
+temp/

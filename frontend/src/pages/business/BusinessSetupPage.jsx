@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { businessAPI, categoryAPI } from "../../api";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
@@ -118,7 +118,7 @@ export default function BusinessSetupPage() {
         tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
       };
       await businessAPI.create(payload);
-      toast.success("Business profile created! Pending admin approval.");
+      toast.success("Business profile created! Your listing is now live.");
       navigate("/dashboard/business");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to create business profile");
@@ -371,7 +371,7 @@ export default function BusinessSetupPage() {
                 </div>
                 <div className="mt-3 flex items-start gap-2 text-xs text-indigo-600 dark:text-indigo-400 bg-white/60 dark:bg-indigo-900/30 rounded-xl p-3">
                   <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>Your profile will be reviewed by an admin before going live. This typically takes 24–48 hours.</span>
+                  <span>Your business profile will be created and published immediately. You can update details at any time from your dashboard.</span>
                 </div>
               </div>
             </div>

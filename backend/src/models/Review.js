@@ -16,7 +16,7 @@ const reviewSchema = new mongoose.Schema(
 // One review per customer per business
 reviewSchema.index({ customer: 1, business: 1 }, { unique: true });
 
-// Auto-update business avgRating after save/remove
+// Auto-update business avgRating after save/delete
 async function updateBusinessRating(businessId) {
   const Review = mongoose.model('Review');
   const Business = mongoose.model('Business');
@@ -34,8 +34,12 @@ async function updateBusinessRating(businessId) {
   }
 }
 
+// Fires after review.save() — covers create and update
 reviewSchema.post('save', function () { updateBusinessRating(this.business); });
-reviewSchema.post('remove', function () { updateBusinessRating(this.business); });
+// Fires after review.deleteOne() — Mongoose 6+ requires this instead of 'remove'
+reviewSchema.post('deleteOne', { document: true, query: false }, function () {
+  updateBusinessRating(this.business);
+});
 reviewSchema.post('findOneAndDelete', function (doc) { if (doc) updateBusinessRating(doc.business); });
 
 module.exports = mongoose.model('Review', reviewSchema);
