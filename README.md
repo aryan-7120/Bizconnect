@@ -1,5 +1,7 @@
 # BizConnect 🔗
 
+Link - https://bizconnect-amber.vercel.app/
+
 > **A full-stack MERN business directory and appointment booking platform** — built for business owners who want a professional online presence, and customers who want to discover and book local services effortlessly.
 
 ---
